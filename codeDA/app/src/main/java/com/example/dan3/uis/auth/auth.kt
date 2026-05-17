@@ -1,5 +1,6 @@
-package com.example.dan3.uis.login
+package com.example.dan3.uis.auth
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,37 +10,60 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.dan3.uis.UiEvent
 
 @Composable
 fun LoginScreen(
-    onClick: (String) -> Unit,
-    onRegisterClick: () -> Unit = {}
+    modifier: Modifier = Modifier
+    ,navController: NavController
+    ,viewModel: AuthViewModel = hiltViewModel()
 ) {
+
+    val context = LocalContext.current
+    val authState = viewModel.authState.collectAsState()
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect {
+            event ->
+            when(event){
+                is UiEvent.NavigateTo -> {
+                    navController.navigate(event.route)
+                }
+                is UiEvent.ShowToast -> {
+                    Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
+                }
+                else ->{}
+            }
+        }
+    }
+
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+           modifier = modifier.fillMaxSize()
             .background(Color.White)
             .padding(24.dp)
     ) {
         Text(
             text = "Đăng Kí",
-            modifier = Modifier
+            modifier = modifier
                 .align(Alignment.TopEnd)
-                .clickable { onRegisterClick() },
+                .clickable {
+                    navController.navigate("register")
+                },
             fontSize = 18.sp,
             fontWeight = FontWeight.Normal,
             color = Color.Black
         )
 
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -57,6 +81,7 @@ fun LoginScreen(
                 "Tên Đăng Nhập",
                 onTextChange = { username = it }
             )
+            Spacer(modifier = Modifier.height(20.dp))
             outlineTextForm(
                 text = password,
                 "Mật Khẩu",
@@ -64,12 +89,11 @@ fun LoginScreen(
             )
 
             Button(
-                onClick = { onClick(username) },
-                modifier = Modifier
+                onClick = {},
+                modifier = modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .padding(top = 16.dp),
-                shape = RectangleShape,
+                    ,shape = RectangleShape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
                     contentColor = Color.White
@@ -87,16 +111,53 @@ fun LoginScreen(
 
 @Composable
 fun RegisterScreen(
-    onClick: (String) -> Unit,
-    onLoginClick: () -> Unit = {}
+    modifier: Modifier = Modifier
+    ,navController: NavController
+    ,viewModel: AuthViewModel = hiltViewModel()
 ) {
+    /*
+    *( ở repository) - > giao diện nhận
+    * asStateFlow
+    * //val authState = viewModel.(name state).collectAsState()
+    * or  authState by viewModel.(name state).collectAsState()
+    * asSharedFlow()
+    * // LaunchedEffect(Unit){
+    * viewModel.uiEvent.collect{event ->
+          when(event){
+            is UiEvent.NavigateTo -> {
+                navController.navigate(
+                    event.route
+                )
+            }
+    *
+    *   }
+    * }
+    * */
+    val context = LocalContext.current
+
+    val authState = viewModel.authState.collectAsState()
+    var name by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
 
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect {
+            event ->
+            when(event){
+                is UiEvent.NavigateTo -> {
+                    navController.navigate(event.route)
+                }
+                is UiEvent.ShowToast -> Toast.makeText(context,event.message,Toast.LENGTH_SHORT).show()
+                else ->{}
+            }
+        }
+    }
+
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(Color.White)
             .padding(24.dp)
@@ -105,7 +166,9 @@ fun RegisterScreen(
             text = "Đăng Nhập",
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .clickable { onLoginClick() },
+                .clickable {
+                    navController.navigate("login")
+                },
             fontSize = 18.sp,
             fontWeight = FontWeight.Normal,
             color = Color.Black
@@ -130,28 +193,32 @@ fun RegisterScreen(
                 placeholder = "Tên Đăng Nhập",
                 onTextChange = { username = it }
             )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             outlineTextForm(
                 text = password,
                 placeholder = "Mật Khẩu",
                 onTextChange = { password = it }
             )
+            Spacer(modifier = Modifier.height(20.dp))
             outlineTextForm(
                 text = phone,
                 placeholder = "SĐT",
                 onTextChange = { phone = it }
             )
+            Spacer(modifier = Modifier.height(20.dp))
             outlineTextForm(
                 text = email,
                 placeholder = "Gmail",
                 onTextChange = { email = it }
             )
-
+            Spacer(modifier = Modifier.height(30.dp))
             Button(
-                onClick = { onClick(username) },
+                onClick = {},
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp)
-                    .height(66.dp),
+                    .height(56.dp),
                 shape = RectangleShape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
@@ -176,8 +243,7 @@ fun outlineTextForm(text:String,placeholder:String, onTextChange: (String) -> Un
         placeholder = { Text(text = placeholder, color = Color.LightGray) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
-        shape = RectangleShape,
+            ,shape = RectangleShape,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color.Black,
             unfocusedBorderColor = Color.Black,
@@ -187,9 +253,4 @@ fun outlineTextForm(text:String,placeholder:String, onTextChange: (String) -> Un
         ),
         singleLine = true
     )
-}
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    RegisterScreen(onClick = {})
 }

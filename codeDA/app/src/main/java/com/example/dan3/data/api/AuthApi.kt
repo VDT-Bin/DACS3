@@ -9,7 +9,7 @@ interface AuthApi{
     suspend fun login(@Body request: loginRequest) : Response<loginResponse>
 
     @POST("register.php")
-    suspend fun register(@Body request: registerRequest)
+    suspend fun register(@Body request: registerRequest) : Response<registerRP>
     }
 data class registerRequest(
     val name: String,
@@ -17,6 +17,11 @@ data class registerRequest(
     val email: String,
     val password: String,
     val username:String
+)
+
+data class registerRP(
+    val status:Boolean,
+    val mess:String
 )
 data class loginRequest(
     val username: String,
